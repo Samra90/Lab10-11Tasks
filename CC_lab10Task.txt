@@ -1,0 +1,160 @@
+using System;
+using System.Collections.Generic;
+using System.Collections;
+
+public class SLRParser
+{
+    ArrayList States = new ArrayList();
+    Stack<string> Stack = new Stack<string>();
+    Dictionary<string, Dictionary<string, object>> ParseTable = new Dictionary<string, Dictionary<string, object>>();
+    string[] Col = {"begin", "(", ")", "{", "int", "a", "b", "c", "=", "5", "10", "0", ";", "if", ">", "print", "else", "$", "}", "+", "end", "Program", "DecS", "AssS", "IffS", "PriS", "Var", "Const"};
+
+    public SLRParser()
+    {
+        States.Add("Program_begin ( ) { DecS Decs Decs AssS IffS } end");
+        States.Add("DecS_int Var = Const ;");
+        States.Add("AssS_Var = Var + Var ;");
+        States.Add("IffS_if ( Var > Var ) { PriS } else { PriS }");
+        States.Add("PriS_print Var ;");
+        States.Add("Var_a");
+        States.Add("Var_b");
+        States.Add("Var_c");
+        States.Add("Const_5");
+        States.Add("Const_10");
+        States.Add("Const_0");
+
+        Stack.Push("0");
+
+        ParseTableInit();
+    }
+
+    public void ParseTableInit()
+    {
+        ParseTable.Add("0", new Dictionary<string, object>()
+        {
+            {"begin", "S2"},
+            {"(", ""},
+            {")", ""},
+            {"{", ""},
+            {"int", ""},
+            {"a", ""},
+            {"b", ""},
+            {"c", ""},
+            {"=", ""},
+            {"5", ""},
+            {"10", ""},
+            {"0", ""},
+            {";", ""},
+            {"if", ""},
+            {">", ""},
+            {"print", ""},
+            {"else", ""},
+            {"$", ""},
+            {"}", ""},
+            {"+", ""},
+            {"end", ""},
+            {"Program", "1"},
+            {"DecS", ""},
+            {"AssS", ""},
+            {"IffS", ""},
+            {"PriS", ""},
+            {"Var", ""},
+            {"Const", ""}
+        });
+        ParseTable.Add("1", new Dictionary<string, object>()
+        {
+            {"begin", ""},
+            {"(", ""},
+            {")", ""},
+            {"{", ""},
+            {"int", ""},
+            {"a", ""},
+            {"b", ""},
+            {"c", ""},
+            {"=", ""},
+            {"5", ""},
+            {"10", ""},
+            {"0", ""},
+            {";", ""},
+            {"if", ""},
+            {">", ""},
+            {"print", ""},
+            {"else", ""},
+            {"$", "Accept"},
+            {"}", ""},
+            {"+", ""},
+            {"end", ""},
+            {"Program", ""},
+            {"DecS", ""},
+            {"AssS", ""},
+            {"IffS", ""},
+            {"PriS", ""},
+            {"Var", ""},
+            {"Const", ""}
+        });
+
+        // Continue adding states and transitions...
+
+    }
+
+    public void ParseInput(string input)
+    {
+        string finalArray = input;
+        int pointer = 0;
+        Stack.Push("0");
+
+        while (Stack.Count != 0)
+        {
+            string top = Stack.Peek();
+            if (ParseTable.ContainsKey(top) && ParseTable[top].ContainsKey(finalArray[pointer].ToString()))
+            {
+                object value = ParseTable[top][finalArray[pointer].ToString()];
+                if (value.ToString()[0] == 'S')
+                {
+                    Stack.Push(finalArray[pointer].ToString());
+                    Stack.Push(value.ToString().Substring(1));
+                    pointer++;
+                }
+                else if (value.ToString()[0] == 'r')
+                {
+                    int num = int.Parse(value.ToString().Substring(1));
+                    string[] splitValue = States[num].ToString().Split('_');
+                    for (int i = 0; i < 2 * splitValue[1].Length; i++)
+                    {
+                        Stack.Pop();
+                    }
+                    string stackTop = Stack.Peek();
+                    Stack.Push(splitValue[0]);
+                    if (ParseTable.ContainsKey(stackTop) && ParseTable[stackTop].ContainsKey(splitValue[0]))
+                    {
+                        Stack.Push(ParseTable[stackTop][splitValue[0]].ToString());
+                    }
+                    else
+                    {
+                        Console.WriteLine("Error");
+                        return;
+                    }
+                }
+                else if (value.ToString() == "Accept")
+                {
+                    Console.WriteLine("Accepted");
+                    return;
+                }
+            }
+            else
+            {
+                Console.WriteLine("Error");
+                return;
+            }
+        }
+
+        Console.WriteLine("Parsing completed.");
+    }
+
+    public static void Main(string[] args)
+    {
+        SLRParser parser = new SLRParser();
+        string input = "Begin(){int a=5; int b=10; int c=0; c=a+b; if(c>a) print a; else print c;}end";
+        parser.ParseInput(input);
+    }
+}

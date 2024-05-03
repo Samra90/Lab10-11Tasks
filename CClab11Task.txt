@@ -1,0 +1,87 @@
+using System;
+
+public class Node
+{
+    public virtual int Evaluate()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class E : Node
+{
+    public Node Left { get; set; }
+    public Node Right { get; set; }
+    
+    public override int Evaluate()
+    {
+        if (Right == null)
+        {
+            return Left.Evaluate();
+        }
+        else
+        {
+            return Left.Evaluate() + Right.Evaluate();
+        }
+    }
+}
+
+public class T : Node
+{
+    public Node Left { get; set; }
+    public Node Right { get; set; }
+    
+    public override int Evaluate()
+    {
+        if (Right == null)
+        {
+            return Left.Evaluate();
+        }
+        else
+        {
+            return Left.Evaluate();
+        }
+    }
+}
+
+public class F : Node
+{
+    public int Value { get; set; }
+    
+    public override int Evaluate()
+    {
+        return Value;
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        // Example expression: 2 * (3 + 4)
+        // Parse tree:
+        //      *
+        //    /   \
+        //   2     +
+        //       /   \
+        //      3     4
+
+        // Construct the parse tree
+        E expression = new E
+        {
+            Left = new T
+            {
+                Left = new F { Value = 2 }
+            },
+            Right = new E
+            {
+                Left = new T { Left = new F { Value = 3 } },
+                Right = new F { Value = 4 }
+            }
+        };
+
+        // Evaluate the expression
+        int result = expression.Evaluate();
+        Console.WriteLine("Result: " + result);  // Output: 14
+    }
+}
